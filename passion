@@ -1,1 +1,39 @@
+import openai
+import random
 
+# Authenticate with the OpenAI API using your API key
+openai.api_key = "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"
+
+# Define a function that takes a user's personality, interests, and skills and returns a list of recommended passions
+def match_passions(personality, interests, skills):
+    # Generate a prompt that uses the user's information to ask the OpenAI GPT-3 model for recommendations
+    prompt = f"I am a person with {personality}. My interests include {interests}, and I have skills in {skills}. Can you recommend some passions for me to pursue?"
+
+    # Use the OpenAI GPT-3 model to generate a list of recommended passions based on the user's information
+    response = openai.Completion.create(
+        engine="text-davinci-002",
+        prompt=prompt,
+        max_tokens=1024,
+        n=1,
+        stop=None,
+        temperature=0.5,
+    )
+
+    # Parse the GPT-3 response to extract the recommended passions
+    passions = response.choices[0].text.strip().split("\n")
+
+    # Return a random selection of up to five recommended passions
+    return random.sample(passions, min(len(passions), 5))
+
+# Prompt the user to input their personality, interests, and skills
+personality = input("What is your personality like? ")
+interests = input("What are your interests? ")
+skills = input("What skills do you have? ")
+
+# Call the match_passions function to generate personalized recommendations
+recommended_passions = match_passions(personality, interests, skills)
+
+# Print the recommended passions
+print("Recommended passions:")
+for passion in recommended_passions:
+    print("- " + passion)
