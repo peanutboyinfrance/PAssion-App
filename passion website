@@ -1,0 +1,45 @@
+from transformers import pipeline
+import random
+
+# Load the Chat Gpt pipeline
+chat_gpt = pipeline('text-generation', model='EleutherAI/gpt-neo-2.7B')
+
+# Define a function to match users with their passions based on their personality, interests, and skills
+def match_passion(personality, interests, skills):
+    prompt = f"I am a person with the following personality traits: {personality}. My interests include {interests}. My skills include {skills}. Could you recommend some passions for me?"
+    response = chat_gpt(prompt, max_length=1000, do_sample=True, temperature=0.7)[0]['generated_text']
+    # Parse the response to extract the recommended passions
+    recommended_passions = [passion.strip() for passion in response.split("-") if passion.strip()]
+    return recommended_passions
+
+# Define a function to recommend resources, classes, and events related to a specific passion
+def recommend_resources(passion):
+    resources = ["Resource 1", "Resource 2", "Resource 3"]
+    classes = ["Class 1", "Class 2", "Class 3"]
+    events = ["Event 1", "Event 2", "Event 3"]
+    # Shuffle the lists to provide random recommendations
+    random.shuffle(resources)
+    random.shuffle(classes)
+    random.shuffle(events)
+    return f"Here are some resources for {passion}: {resources[:2]}. Here are some classes for {passion}: {classes[:2]}. Here are some events related to {passion}: {events[:2]}."
+
+# Define a Flask app to handle HTTP requests
+from flask import Flask, request
+
+app = Flask(__name__)
+
+@app.route('/passion-matcher', methods=['POST'])
+def passion_matcher():
+    # Parse the request parameters
+    personality = request.form['personality']
+    interests = request.form['interests']
+    skills = request.form['skills']
+    # Match the user with their passions
+    passions = match_passion(personality, interests, skills)
+    # Recommend resources, classes, and events for each passion
+    recommendations = [recommend_resources(passion) for passion in passions]
+    # Return the recommendations as a JSON response
+    return {"recommendations": recommendations}
+
+if __name__ == '__main__':
+    app.run(debug=True)
